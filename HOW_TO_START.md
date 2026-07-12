@@ -4,13 +4,12 @@ Welcome to the team! This guide will show you how to build your module.
 
 To make things easy and avoid mistakes, you have **full independence**. This means you will write code **only** inside your own folder. 
 
-At the very end, **Developer 1** will integrate your folder with the rest of the application.
 
 ---
 
 ## The Rule of Independence
 You have your own sandbox folder. You must **only** create and edit files inside your folder:
-- **Developer 2 (SwachhAudit)**: Only edit files inside `app/swachhaudit/`
+- **Developer 1 (SwachhAudit)**: Only edit files inside `app/swachhaudit/`
 - **Developer 2 (JalDrishti)**: Only edit files inside `app/jaldrishti/`
 - **Developer 3 (GramLipi)**: Only edit files inside `app/gramlipi/`
 - **Developer 4 (SwachhSankalp)**: Only edit files inside `app/swachhsankalp/`
