@@ -1,4 +1,4 @@
-import type { DocumentSummary, Language, SimplifiedDocument } from '../types';
+import type { ComplaintDetails, ComplaintLetter,DocumentSummary, Language, SimplifiedDocument } from '../types';
 /**
  * IMPORTANT — architecture note:
  * This module's spec calls for an on-device LLM running inside the browser
@@ -26,7 +26,7 @@ interface OllamaGenerateResponse {
 function buildSummaryPrompt(text: string, language: Language): string {
     const languageInstruction =
       language === 'kn'
-        ? 'Respond with all text values written in Kannada.'
+        ? 'Respond entirely in Kannada script. Every word, including dates, month names, and headings-equivalent phrases, must be written in Kannada — do not leave any English words, numerals-as-English-months (e.g. "November"), or English phrases mixed in. Numbers/phone numbers may stay in digits, but all surrounding words must be Kannada.'
         : 'Respond with all text values written in simple, plain English.';
   
     return `You are helping a villager fully understand a government notice they may not read again. Read the notice text below and respond with ONLY a JSON object (no markdown, no code fences, no extra commentary) matching exactly this shape:
@@ -54,11 +54,112 @@ function buildSummaryPrompt(text: string, language: Language): string {
   ${text}
   """`;
   }
+  function buildComplaintPrompt(details: ComplaintDetails, language: Language): string {
+    const languageInstruction =
+      language === 'kn'
+        ? 'Write the entire letter in formal, respectful Kannada.'
+        : 'Write the entire letter in formal, respectful English.';
+  
+    return `You are helping a villager write a formal complaint letter to a government authority. Using the details below, draft the letter and respond with ONLY a JSON object (no markdown, no code fences, no extra commentary) matching exactly this shape:
+  
+  {
+    "subject": string,
+    "greeting": string,
+    "body": string,
+    "closingStatement": string
+  }
+  
+  ${languageInstruction}
+  
+  Guidelines:
+  - "subject": a short, clear one-line subject referencing the issue.
+  - "greeting": a formal salutation addressed to the given authority (e.g. "Respected Sir/Madam," or the Kannada equivalent).
+  - "body": 2-4 paragraphs stating what happened, where and when (use the location and date given), why it needs attention, and a polite request for action. Do not invent facts beyond what is given below.
+  - "closingStatement": a formal closing request and sign-off phrase (e.g. "I request you to kindly look into this matter at the earliest. Thanking you,"). Do not include a name/signature line — the app adds that separately.
+  
+  Complaint details:
+  Issue Title: ${details.issueTitle}
+  Location: ${details.location}
+  Date: ${details.date}
+  Authority: ${details.authorityName}
+  Description: ${details.description}`;
+  }
 
+  interface ComplaintLetterFields {
+    subject: string;
+    greeting: string;
+    body: string;
+    closingStatement: string;
+  }
+  
+  /**
+   * Translates an already-drafted English letter into Kannada, rather than
+   * asking the model to draft directly in Kannada. Translation of finished,
+   * well-formed English text is a far more reliable task for a small local
+   * model than composing formal, grammatically correct Kannada from raw form
+   * details — this consistently produces more natural results.
+   */
+  async function translateComplaintLetterFields(
+    fields: ComplaintLetterFields,
+    targetLanguage: Language
+  ): Promise<ComplaintLetterFields> {
+    if (targetLanguage === 'en') return fields;
+  
+    const prompt = `Translate the following formal complaint letter into natural, fluent, grammatically correct Kannada, as a native Kannada speaker would write it formally. Preserve the formal tone and every fact, date, number, and name exactly — do not summarize, shorten, or add anything. Respond with ONLY a JSON object (no markdown, no commentary) in exactly this shape:
+  
+  {
+    "subject": string,
+    "greeting": string,
+    "body": string,
+    "closingStatement": string
+  }
+  
+  Letter to translate:
+  Subject: ${fields.subject}
+  Greeting: ${fields.greeting}
+  Body: ${fields.body}
+  Closing: ${fields.closingStatement}`;
+  
+    let response: Response;
+    try {
+      response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: OLLAMA_MODEL,
+          prompt,
+          stream: false,
+          format: 'json',
+        }),
+      });
+    } catch {
+      throw new Error('Could not reach Ollama while translating the letter.');
+    }
+  
+    if (!response.ok) {
+      throw new Error(`Ollama returned an error (${response.status}) while translating.`);
+    }
+  
+    const { response: rawModelOutput }: OllamaGenerateResponse = await response.json();
+  
+    let parsed: Partial<ComplaintLetterFields>;
+    try {
+      parsed = JSON.parse(rawModelOutput);
+    } catch {
+      throw new Error('The model did not return valid JSON while translating. Try again.');
+    }
+  
+    return {
+      subject: parsed.subject ?? fields.subject,
+      greeting: parsed.greeting ?? fields.greeting,
+      body: parsed.body ?? fields.body,
+      closingStatement: parsed.closingStatement ?? fields.closingStatement,
+    };
+  }
   function buildSimplifyPrompt(text: string, language: Language): string {
     const languageInstruction =
       language === 'kn'
-        ? 'Write your rewritten version entirely in Kannada.'
+        ? 'Write your rewritten version entirely in Kannada script. Every word, including dates and month names, must be in Kannada — do not leave any English words or phrases mixed in. Numbers/phone numbers may stay in digits, but all surrounding words must be Kannada.'
         : 'Write your rewritten version in simple, plain English.';
   
     return `You are helping a villager who may not understand formal or legal government language. Rewrite the notice text below in plain, simple, everyday language so an ordinary person can understand it easily.
@@ -137,6 +238,75 @@ export async function summarizeDocument(
     language,
   };
 }
+
+/**
+ * Sends complaint form details to the local Ollama instance and asks it to
+ * draft a formal letter. Same connectivity requirements as
+ * summarizeDocument() — see that function's docstring.
+ */
+export async function generateComplaintLetter(
+    details: ComplaintDetails,
+    letterId: string,
+    language: Language = 'en'
+  ): Promise<ComplaintLetter> {
+    // Always draft in English first, regardless of the requested output
+    // language — see translateComplaintLetterFields() for why.
+    let response: Response;
+  
+    try {
+      response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: OLLAMA_MODEL,
+          prompt: buildComplaintPrompt(details, 'en'),
+          stream: false,
+          format: 'json',
+        }),
+      });
+    } catch {
+      throw new Error(
+        'Could not reach Ollama. Make sure it is running locally (ollama serve) and that OLLAMA_ORIGINS allows this app.'
+      );
+    }
+  
+    if (!response.ok) {
+      throw new Error(`Ollama returned an error (${response.status}). Is the model pulled?`);
+    }
+  
+    const { response: rawModelOutput }: OllamaGenerateResponse = await response.json();
+  
+    let parsed: Partial<ComplaintLetterFields>;
+    try {
+      parsed = JSON.parse(rawModelOutput);
+    } catch {
+      throw new Error('The model did not return valid JSON. Try again, or use a different model.');
+    }
+  
+    if (!parsed.subject || !parsed.body) {
+      throw new Error('The model returned an incomplete letter. Try again.');
+    }
+  
+    const englishFields: ComplaintLetterFields = {
+      subject: parsed.subject,
+      greeting: parsed.greeting ?? 'Respected Sir/Madam,',
+      body: parsed.body,
+      closingStatement: parsed.closingStatement ?? '',
+    };
+  
+    const finalFields = await translateComplaintLetterFields(englishFields, language);
+  
+    return {
+      id: letterId,
+      details,
+      subject: finalFields.subject,
+      greeting: finalFields.greeting,
+      body: finalFields.body,
+      closingStatement: finalFields.closingStatement,
+      language,
+      generatedAt: new Date().toISOString(),
+    };
+  }
 
 /**
  * Sends OCR'd document text to the local Ollama instance and asks it to
