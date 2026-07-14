@@ -143,6 +143,7 @@ function ResultContent() {
             detections={report.detections}
             highlightedId={hoveredId}
             onHoverDetection={setHoveredId}
+            recommendations={report.recommendations}
           />
         </div>
       </div>

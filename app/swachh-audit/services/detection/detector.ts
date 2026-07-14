@@ -2,7 +2,7 @@ import { SwachhAuditReport, DetectionResult } from '../../types/types';
 import { modelLoader } from './modelLoader';
 import { preprocessImage } from './imagePreprocessor';
 import { postProcess } from './postProcessor';
-import { calculateCleanlinessMetrics, calculateSeverity, CleanlinessMetrics } from '../../utils/cleanliness';
+import { calculateCleanlinessMetrics, calculateSeverity, CleanlinessMetrics, generateRecommendations } from '../../utils/cleanliness';
 
 export const CLASS_LABELS = [
   'Plastic',
@@ -103,6 +103,7 @@ class DetectorService {
     const metrics = calculateCleanlinessMetrics(detections);
     const severity = calculateSeverity(detections, metrics.areaCoverage);
     const notes = this.generateNotes(detections, metrics);
+    const recommendations = generateRecommendations(detections);
 
     const report: SwachhAuditReport = {
       id: `report-${Date.now()}`,
@@ -114,6 +115,7 @@ class DetectorService {
       objectCount: metrics.objectCount,
       notes,
       detections,
+      recommendations,
     };
 
     onProgress(100, 'Syncing local storage logs... Done!');

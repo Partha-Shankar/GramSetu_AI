@@ -1,4 +1,5 @@
 import { SwachhAuditReport } from '../types/types';
+import { generateRecommendations } from '../utils/cleanliness';
 
 const STORAGE_KEY = 'gramsetu_swachh_audit_history';
 
@@ -31,6 +32,11 @@ const DEFAULT_REPORTS: SwachhAuditReport[] = [
       { id: 'det-1-5', label: 'Electronic Waste', confidence: 0.85, category: 'hazardous', bbox: { x: 70, y: 60, width: 20, height: 25 } },
       { id: 'det-1-6', label: 'Cardboard', confidence: 0.76, category: 'dry', bbox: { x: 5, y: 45, width: 25, height: 15 } },
     ],
+    recommendations: [
+      'Plastic waste detected. Recommend immediate dry-waste collection and segregation.',
+      'Organic/Food waste accumulation detected. Recommend composting or scheduled disposal before decay.',
+      'Electronic waste (hazardous) detected. Recommend specialized e-waste collection and safe containment.'
+    ],
   },
   {
     id: 'report-2',
@@ -47,6 +53,11 @@ const DEFAULT_REPORTS: SwachhAuditReport[] = [
       { id: 'det-2-3', label: 'Plastic Bottle', confidence: 0.71, category: 'dry', bbox: { x: 5, y: 75, width: 15, height: 15 } },
       { id: 'det-2-4', label: 'Paper', confidence: 0.65, category: 'dry', bbox: { x: 75, y: 80, width: 10, height: 10 } },
     ],
+    recommendations: [
+      'Sewage/Stagnant water detected. Recommend immediate desilting/clearing to prevent mosquito vector breeding.',
+      'Plastic waste detected. Recommend immediate dry-waste collection and segregation.',
+      'Paper/Cardboard litter detected. Recommend collection for dry recycling.'
+    ],
   },
   {
     id: 'report-3',
@@ -62,6 +73,10 @@ const DEFAULT_REPORTS: SwachhAuditReport[] = [
       { id: 'det-3-2', label: 'Paper', confidence: 0.81, category: 'dry', bbox: { x: 45, y: 60, width: 25, height: 20 } },
       { id: 'det-3-3', label: 'Glass Bottle', confidence: 0.77, category: 'dry', bbox: { x: 75, y: 40, width: 10, height: 30 } },
     ],
+    recommendations: [
+      'Plastic waste detected. Recommend immediate dry-waste collection and segregation.',
+      'Paper/Cardboard litter detected. Recommend collection for dry recycling.'
+    ],
   },
   {
     id: 'report-4',
@@ -73,6 +88,9 @@ const DEFAULT_REPORTS: SwachhAuditReport[] = [
     objectCount: 0,
     notes: 'Highly clean public path near Panchayat office. No visible waste elements.',
     detections: [],
+    recommendations: [
+      'The site is clean. Maintain standard regular sweeping and monitoring. No immediate action required.'
+    ],
   },
 ];
 
@@ -185,6 +203,7 @@ export const auditService = {
           objectCount: selected.detections.length,
           notes: selected.notes,
           detections: selected.detections,
+          recommendations: generateRecommendations(selected.detections),
         };
 
         // Save immediately to history

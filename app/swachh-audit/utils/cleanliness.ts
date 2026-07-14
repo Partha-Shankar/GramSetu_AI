@@ -172,3 +172,52 @@ export function calculateSeverity(
   // - Clean or trace litter (0 or 1 minor item)
   return 'low';
 }
+
+/**
+ * Generates rule-based, deterministic recommendations based on detected waste types.
+ */
+export function generateRecommendations(detections: DetectionResult[]): string[] {
+  if (detections.length === 0) {
+    return ['The site is clean. Maintain standard regular sweeping and monitoring. No immediate action required.'];
+  }
+
+  const recommendations: string[] = [];
+  const labels = new Set(detections.map((d) => d.label.toLowerCase().trim()));
+
+  // 1. Plastic waste rule
+  if (Array.from(labels).some((l) => l.includes('plastic') || l.includes('wrapper') || l.includes('bottle'))) {
+    recommendations.push('Plastic waste detected. Recommend immediate dry-waste collection and segregation.');
+  }
+
+  // 2. Paper/Cardboard rule
+  if (Array.from(labels).some((l) => l.includes('paper') || l.includes('cardboard') || l.includes('box'))) {
+    recommendations.push('Paper/Cardboard litter detected. Recommend collection for dry recycling.');
+  }
+
+  // 3. Metal/Glass rule
+  if (Array.from(labels).some((l) => l.includes('metal') || l.includes('can') || l.includes('glass') || l.includes('shard'))) {
+    recommendations.push('Sharp Metal/Glass elements present. Recommend priority collection to prevent injury hazards.');
+  }
+
+  // 4. Organic/Food waste rule
+  if (Array.from(labels).some((l) => l.includes('organic') || l.includes('food') || l.includes('decay'))) {
+    recommendations.push('Organic/Food waste accumulation detected. Recommend composting or scheduled disposal before decay.');
+  }
+
+  // 5. Electronic waste rule
+  if (Array.from(labels).some((l) => l.includes('electronic') || l.includes('e-waste') || l.includes('battery'))) {
+    recommendations.push('Electronic waste (hazardous) detected. Recommend specialized e-waste collection and safe containment.');
+  }
+
+  // 6. Sewage/Drain/Stagnant Water rule
+  if (Array.from(labels).some((l) => l.includes('sewage') || l.includes('drain') || l.includes('stagnant') || l.includes('water'))) {
+    recommendations.push('Sewage/Stagnant water detected. Recommend immediate desilting/clearing to prevent mosquito vector breeding.');
+  }
+
+  // Fallback if there are objects but none triggered specific keywords
+  if (recommendations.length === 0) {
+    recommendations.push('Solid waste detected. Schedule cleanup drive and empty local trash receptacles.');
+  }
+
+  return recommendations;
+}
