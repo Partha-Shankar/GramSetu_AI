@@ -6,8 +6,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { StatsCards } from './components/StatsCards';
 import { CleanlinessScore } from './components/CleanlinessScore';
 import { ChecklistManager } from './components/ChecklistManager';
+import { WardLeaderboard } from './components/WardLeaderboard';
+import { CampaignTracker } from './components/CampaignTracker';
 import { useSwachhData } from './hooks/useSwachhData';
-import { Loader2, Trophy, Users, BarChart3, ShieldAlert } from 'lucide-react';
+import { Loader2, BarChart3 } from 'lucide-react';
 
 export default function SwachhSankalpPage() {
   const {
@@ -50,92 +52,30 @@ export default function SwachhSankalpPage() {
 
       {/* Main Interactive Work Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns on desktop: Checklist */}
-        <div className="lg:col-span-2">
+        {/* Left 2 Columns on desktop: Checklist & Campaigns */}
+        <div className="lg:col-span-2 space-y-6">
           <ChecklistManager
             tasks={tasks}
             onToggle={toggleTask}
             onAddTask={addTask}
           />
+          
+          <CampaignTracker
+            campaigns={campaigns}
+            onJoin={joinCampaign}
+          />
         </div>
 
-        {/* Right Column on desktop: Score Gauge */}
-        <div className="lg:col-span-1">
+        {/* Right Column on desktop: Score Gauge & Leaderboard */}
+        <div className="lg:col-span-1 space-y-6">
           <CleanlinessScore score={villageScore} />
+          
+          <WardLeaderboard wards={wards} />
         </div>
       </div>
 
-      {/* Row 3: Upcoming Modules Preview (Days 2 & 3 Development) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-        {/* Ward Leaderboard Preview */}
-        <Card className="border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-bl-lg uppercase tracking-wider">
-            Day 2 Release
-          </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-neutral-900 dark:text-neutral-50 flex items-center space-x-2">
-              <Trophy className="w-4 h-4 text-amber-500" />
-              <span>Ward Leaderboard</span>
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Check ranking of different village wards
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-44 flex flex-col justify-between pt-4">
-            <div className="space-y-3 opacity-40">
-              <div className="flex justify-between items-center text-xs">
-                <span>Rank 1: Ward 2 (Shanti Nagar)</span>
-                <span className="font-semibold text-emerald-600">95%</span>
-              </div>
-              <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full" />
-              
-              <div className="flex justify-between items-center text-xs">
-                <span>Rank 2: Ward 1 (Kalyanpur)</span>
-                <span className="font-semibold text-blue-600">88%</span>
-              </div>
-              <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full" />
-            </div>
-            <div className="border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md p-2 bg-neutral-50/50 dark:bg-neutral-900/30 text-center">
-              <span className="text-[11px] text-neutral-500 font-medium">
-                Live leaderboards and interactive ward badges will activate in Commit 2.
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Campaign Tracker Preview */}
-        <Card className="border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-3 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-bl-lg uppercase tracking-wider">
-            Day 2 Release
-          </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-neutral-900 dark:text-neutral-50 flex items-center space-x-2">
-              <Users className="w-4 h-4 text-indigo-500" />
-              <span>Village Campaign Tracker</span>
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Monitor active cleanups & volunteer groups
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-44 flex flex-col justify-between pt-4">
-            <div className="space-y-3 opacity-40">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium truncate">Sunday Lake Cleanup</span>
-                <span className="text-neutral-400">24 Joined</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium truncate">Plastic-Free Market</span>
-                <span className="text-neutral-400">18 Joined</span>
-              </div>
-            </div>
-            <div className="border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md p-2 bg-neutral-50/50 dark:bg-neutral-900/30 text-center">
-              <span className="text-[11px] text-neutral-500 font-medium">
-                Interactive volunteer joining & event progress bars will activate in Commit 2.
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
+      {/* Row 3: Upcoming Modules Preview (Day 3 Development) */}
+      <div className="pt-2">
         {/* Progress Charts & Achievements Preview */}
         <Card className="border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 right-0 p-3 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-bl-lg uppercase tracking-wider">
@@ -144,26 +84,34 @@ export default function SwachhSankalpPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold text-neutral-900 dark:text-neutral-50 flex items-center space-x-2">
               <BarChart3 className="w-4 h-4 text-emerald-500" />
-              <span>Charts & Badges</span>
+              <span>SVG Progress Charts & Achievements</span>
             </CardTitle>
             <CardDescription className="text-xs">
-              Weekly progress, comparisons, and achievements
+              Weekly progress charts, monthly trends, and village milestone awards
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-44 flex flex-col justify-between pt-4">
-            <div className="space-y-3 opacity-40">
-              <div className="flex justify-between items-center text-xs">
-                <span>Plastic Free Champion</span>
-                <span className="text-emerald-500 font-semibold">Unlocked</span>
+          <CardContent className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1 opacity-45">
+              <div className="text-xs">
+                <span className="block text-neutral-400 font-medium">Plastic Free Champion</span>
+                <span className="text-emerald-600 font-bold mt-0.5 block">Unlocked</span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span>Green Village Award</span>
-                <span className="text-neutral-400 font-semibold">Locked</span>
+              <div className="text-xs">
+                <span className="block text-neutral-400 font-medium">Zero Litter Ward</span>
+                <span className="text-emerald-600 font-bold mt-0.5 block">Unlocked</span>
+              </div>
+              <div className="text-xs">
+                <span className="block text-neutral-400 font-medium">Community Hero</span>
+                <span className="text-emerald-600 font-bold mt-0.5 block">Unlocked</span>
+              </div>
+              <div className="text-xs">
+                <span className="block text-neutral-400 font-medium">Green Village Award</span>
+                <span className="text-neutral-400 font-bold mt-0.5 block">Locked</span>
               </div>
             </div>
-            <div className="border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md p-2 bg-neutral-50/50 dark:bg-neutral-900/30 text-center">
+            <div className="border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md p-3 bg-neutral-50/50 dark:bg-neutral-900/30 md:max-w-xs text-center shrink-0">
               <span className="text-[11px] text-neutral-500 font-medium">
-                SVG weekly/monthly charts & custom badge logic will activate in Commit 3.
+                Live interactive charts (weekly progress, ward comparisons) and the full achievements system will activate in the next commit.
               </span>
             </div>
           </CardContent>
@@ -172,3 +120,4 @@ export default function SwachhSankalpPage() {
     </div>
   );
 }
+
