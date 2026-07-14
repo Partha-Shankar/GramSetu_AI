@@ -1,92 +1,39 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
-import { Camera, RefreshCw, Upload, AlertCircle, Eye } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, RefreshCw, Upload, AlertCircle, Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
+import { useCamera } from '../hooks/useCamera';
 
 interface CameraCardProps {
   onCapture: (imageSrc: string) => void;
 }
 
 export function CameraCard({ onCapture }: CameraCardProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied'>('prompt');
-  const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const {
+    videoRef,
+    facingMode,
+    permissionState,
+    cameraActive,
+    loading,
+    error,
+    toggleFacingMode,
+    captureImage,
+  } = useCamera();
+
   const [shutterFlash, setShutterFlash] = useState<boolean>(false);
-
-  useEffect(() => {
-    let localStream: MediaStream | null = null;
-
-    const startCamera = async (mode: 'user' | 'environment') => {
-      try {
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: mode,
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        };
-
-        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-        localStream = mediaStream;
-        
-        // Wrap state setters in a timeout to avoid synchronous execution warnings
-        setTimeout(() => {
-          setPermissionState('granted');
-          setCameraActive(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = mediaStream;
-          }
-        }, 0);
-      } catch (err) {
-        console.warn('Camera access error, falling back to mock mode:', err);
-        setTimeout(() => {
-          if (err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
-            setPermissionState('denied');
-          } else {
-            setPermissionState('prompt');
-          }
-          setCameraActive(false);
-        }, 0);
-      }
-    };
-
-    startCamera(facingMode);
-
-    return () => {
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [facingMode]);
-
-  const toggleFacingMode = () => {
-    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
-  };
 
   const handleCapture = () => {
     setShutterFlash(true);
     setTimeout(() => setShutterFlash(false), 200);
 
-    if (cameraActive && videoRef.current) {
-      // Capture actual webcam frame
-      const video = videoRef.current;
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        // Draw video frame to canvas
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg');
-        onCapture(dataUrl);
-      }
+    const dataUrl = captureImage();
+    if (dataUrl) {
+      onCapture(dataUrl);
     } else {
-      // Fallback: Capture a premium mock street scenery image
+      // Fallback: Capture a premium mock street scenery image if capture fails or camera is offline
       const mockImages = [
         'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=800',
         'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&q=80&w=800',
@@ -121,6 +68,14 @@ export function CameraCard({ onCapture }: CameraCardProps) {
       </CardHeader>
 
       <CardContent className="p-0 relative bg-neutral-950 flex items-center justify-center aspect-video sm:max-h-[420px] overflow-hidden">
+        {/* Loading Spinner */}
+        {loading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-950 z-20 text-neutral-400">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-2" />
+            <span className="text-xs">Starting camera feed...</span>
+          </div>
+        )}
+
         {/* Live Video */}
         {cameraActive && permissionState === 'granted' && (
           <video
@@ -128,14 +83,13 @@ export function CameraCard({ onCapture }: CameraCardProps) {
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover scale-x-[-1]" // mirror view for user-friendliness
+            className={`w-full h-full object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
           />
         )}
 
-        {/* Mock View when real camera is inactive */}
-        {!cameraActive && permissionState !== 'denied' && (
+        {/* Mock View when real camera is inactive and loading is done */}
+        {!cameraActive && !loading && permissionState !== 'denied' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-neutral-300 bg-neutral-900 z-10">
-            {/* Visual background image showing mock simulator */}
             <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=800')] bg-cover bg-center" />
             <div className="relative z-10 space-y-4">
               <div className="mx-auto w-12 h-12 bg-neutral-800/80 rounded-full flex items-center justify-center border border-neutral-700">
@@ -144,7 +98,7 @@ export function CameraCard({ onCapture }: CameraCardProps) {
               <div>
                 <h4 className="text-sm font-semibold text-neutral-200">On-Device Camera Mock Simulator</h4>
                 <p className="text-xs text-neutral-400 mt-1 max-w-sm mx-auto">
-                  A real camera was not found or could not initialize. Taking a photo will simulate a high-quality waste audit scan.
+                  {error || 'A real camera was not found or could not initialize. Taking a photo will simulate a high-quality waste audit scan.'}
                 </p>
               </div>
               <div className="inline-flex items-center space-x-1 text-[10px] font-mono uppercase bg-blue-950/80 border border-blue-900 text-blue-400 px-2 py-0.5 rounded-sm">
@@ -156,7 +110,7 @@ export function CameraCard({ onCapture }: CameraCardProps) {
         )}
 
         {/* Permission Denied State */}
-        {permissionState === 'denied' && (
+        {permissionState === 'denied' && !loading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-neutral-300 bg-neutral-900 z-20">
             <div className="mx-auto w-12 h-12 bg-red-950/50 rounded-full flex items-center justify-center border border-red-900 mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
@@ -177,7 +131,7 @@ export function CameraCard({ onCapture }: CameraCardProps) {
         )}
 
         {/* Scanner Radar Overlay effect */}
-        {cameraActive && (
+        {cameraActive && !loading && (
           <div className="absolute inset-0 border-2 border-blue-500/20 pointer-events-none">
             <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-blue-500" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-blue-500" />

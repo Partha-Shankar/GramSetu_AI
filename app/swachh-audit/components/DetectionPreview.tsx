@@ -78,7 +78,7 @@ export function DetectionPreview({
 
       {/* Absolute Overlay Container for Bounding Boxes */}
       <div className="absolute inset-0 w-full h-full top-0 left-0">
-        {detections.map((det) => {
+        {detections.map((det, index) => {
           const colors = CATEGORY_COLORS[det.category] || CATEGORY_COLORS.dry;
           const isHighlighted = currentActiveId === det.id;
 
@@ -108,7 +108,7 @@ export function DetectionPreview({
                   isHighlighted ? 'opacity-100 z-30 scale-105' : ''
                 )}
               >
-                {det.label} ({Math.round(det.confidence * 100)}%)
+                #{index + 1} {det.label} ({Math.round(det.confidence * 100)}%)
               </div>
             </div>
           );
