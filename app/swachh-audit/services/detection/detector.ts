@@ -5,16 +5,18 @@ import { postProcess } from './postProcessor';
 import { calculateCleanlinessMetrics, calculateSeverity, CleanlinessMetrics, generateRecommendations } from '../../utils/cleanliness';
 
 export const CLASS_LABELS = [
-  'Plastic',
-  'Paper',
+  'Battery',
+  'Biological',
+  'Brown Glass',
   'Cardboard',
+  'Clothes',
+  'Green Glass',
   'Metal',
-  'Glass',
-  'Organic Waste',
-  'Food Waste',
-  'Electronic Waste',
-  'Sewage',
-  'Stagnant Water',
+  'Paper',
+  'Plastic',
+  'Shoes',
+  'Trash',
+  'White Glass',
 ];
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
