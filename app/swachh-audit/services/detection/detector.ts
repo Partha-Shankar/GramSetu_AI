@@ -258,7 +258,7 @@ class DetectorService {
           } else {
             resolve('dry');
           }
-        } catch (e) {
+        } catch {
           resolve('dry');
         }
       };
