@@ -1,14 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { PageHeader } from '@/components/common/page-header';
+import { Button } from '@/components/ui/button';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { ErrorState } from '@/components/ui/error-state';
 import { CameraView } from './components/CameraView';
 import { ImagePreview } from './components/ImagePreview';
 import { WaterReportCard } from './components/WaterReportCard';
 import { SafetySummaryBanner } from './components/SafetySummaryBanner';
+import { RecommendationCard } from './components/RecommendationCard';
 import { useStripAnalysis } from './hooks/useStripAnalysis';
+import { generateRecommendation } from './services/recommendationEngine';
 import { CapturedImage, ScanStage } from './types/jaldrishti.types';
 
 export default function JalDrishtiPage() {
@@ -65,6 +69,11 @@ export default function JalDrishtiPage() {
               <WaterReportCard key={result.parameter} result={result} />
             ))}
           </div>
+          <RecommendationCard recommendation={generateRecommendation(results)} />
+          <Button variant="outline" className="w-full" onClick={handleRetake}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Scan Again
+          </Button>
         </div>
       )}
     </div>
