@@ -37,17 +37,58 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'kn', label: 'ಕನ್ನಡ (Kannada)' },
 ];
 
-function summaryToPlainText(summary: DocumentSummary): string {
+// UI chrome (headings/buttons) is app text, not model output — it has to be
+// localized here, separately from whatever language the LLM responds in.
+const LABELS: Record<Language, Record<string, string>> = {
+  en: {
+    extractedText: 'Extracted Text',
+    extractedTextDesc:
+      'Review the text read from your document and fix any OCR mistakes before continuing.',
+    outputLanguage: 'Output language',
+    simplify: 'Simplify',
+    simplifying: 'Simplifying…',
+    summarize: 'Summarize',
+    summarizing: 'Summarizing…',
+    simplifiedText: 'Simplified Text',
+    summary: 'Summary',
+    mainPurpose: 'Main Purpose',
+    importantDates: 'Important Dates',
+    requiredActions: 'Required Actions',
+    keyPoints: 'Key Points',
+    copy: 'Copy',
+    copied: 'Copied!',
+  },
+  kn: {
+    extractedText: 'ಹೊರತೆಗೆದ ಪಠ್ಯ',
+    extractedTextDesc:
+      'ನಿಮ್ಮ ದಾಖಲೆಯಿಂದ ಓದಿದ ಪಠ್ಯವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮುಂದುವರಿಯುವ ಮೊದಲು ಯಾವುದೇ OCR ತಪ್ಪುಗಳನ್ನು ಸರಿಪಡಿಸಿ.',
+    outputLanguage: 'ಔಟ್‌ಪುಟ್ ಭಾಷೆ',
+    simplify: 'ಸರಳೀಕರಿಸಿ',
+    simplifying: 'ಸರಳೀಕರಿಸಲಾಗುತ್ತಿದೆ…',
+    summarize: 'ಸಾರಾಂಶಿಸಿ',
+    summarizing: 'ಸಾರಾಂಶಿಸಲಾಗುತ್ತಿದೆ…',
+    simplifiedText: 'ಸರಳೀಕೃತ ಪಠ್ಯ',
+    summary: 'ಸಾರಾಂಶ',
+    mainPurpose: 'ಮುಖ್ಯ ಉದ್ದೇಶ',
+    importantDates: 'ಮುಖ್ಯ ದಿನಾಂಕಗಳು',
+    requiredActions: 'ಅಗತ್ಯ ಕ್ರಮಗಳು',
+    keyPoints: 'ಪ್ರಮುಖ ಅಂಶಗಳು',
+    copy: 'ನಕಲಿಸಿ',
+    copied: 'ನಕಲಿಸಲಾಗಿದೆ!',
+  },
+};
+
+function summaryToPlainText(summary: DocumentSummary, t: Record<string, string>): string {
   return [
-    `Main Purpose:\n${summary.mainPurpose}`,
+    `${t.mainPurpose}:\n${summary.mainPurpose}`,
     summary.importantDates.length > 0
-      ? `Important Dates:\n${summary.importantDates.map((d) => `- ${d}`).join('\n')}`
+      ? `${t.importantDates}:\n${summary.importantDates.map((d) => `- ${d}`).join('\n')}`
       : null,
     summary.requiredActions.length > 0
-      ? `Required Actions:\n${summary.requiredActions.map((a) => `- ${a}`).join('\n')}`
+      ? `${t.requiredActions}:\n${summary.requiredActions.map((a) => `- ${a}`).join('\n')}`
       : null,
     summary.keyPoints.length > 0
-      ? `Key Points:\n${summary.keyPoints.map((p) => `- ${p}`).join('\n')}`
+      ? `${t.keyPoints}:\n${summary.keyPoints.map((p) => `- ${p}`).join('\n')}`
       : null,
   ]
     .filter(Boolean)
@@ -68,6 +109,7 @@ export function OcrPreviewCard({
 }: OcrPreviewCardProps) {
   const { stage, ocrResult, error, document } = state;
   const [copiedField, setCopiedField] = useState<'simplified' | 'summary' | null>(null);
+  const t = LABELS[language];
 
   const handleCopy = async (text: string, field: 'simplified' | 'summary') => {
     try {
@@ -75,8 +117,7 @@ export function OcrPreviewCard({
       setCopiedField(field);
       setTimeout(() => setCopiedField((current) => (current === field ? null : current)), 2000);
     } catch {
-      // Clipboard access can fail (insecure context, permissions, etc.) —
-      // not worth a full error state, so we just skip the "Copied!" feedback.
+      // Clipboard access can fail — not worth a full error state.
     }
   };
 
@@ -87,11 +128,8 @@ export function OcrPreviewCard({
   return (
     <Card className="border-neutral-200">
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Extracted Text</CardTitle>
-        <CardDescription className="text-xs">
-          Review the text read from your document and fix any OCR mistakes before
-          continuing.
-        </CardDescription>
+        <CardTitle className="text-base font-semibold">{t.extractedText}</CardTitle>
+        <CardDescription className="text-xs">{t.extractedTextDesc}</CardDescription>
       </CardHeader>
       <CardContent>
         {(stage === 'uploading' || stage === 'ocr') && (
@@ -128,7 +166,7 @@ export function OcrPreviewCard({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <label htmlFor="gramlipi-language" className="text-xs text-neutral-500">
-                  Output language
+                  {t.outputLanguage}
                 </label>
                 <select
                   id="gramlipi-language"
@@ -151,7 +189,7 @@ export function OcrPreviewCard({
                   onClick={onSimplify}
                   disabled={simplifyState.status === 'loading'}
                 >
-                  {simplifyState.status === 'loading' ? 'Simplifying…' : 'Simplify'}
+                  {simplifyState.status === 'loading' ? t.simplifying : t.simplify}
                 </Button>
                 <Button
                   variant="outline"
@@ -159,7 +197,7 @@ export function OcrPreviewCard({
                   onClick={onSummarize}
                   disabled={summaryState.status === 'loading'}
                 >
-                  {summaryState.status === 'loading' ? 'Summarizing…' : 'Summarize'}
+                  {summaryState.status === 'loading' ? t.summarizing : t.summarize}
                 </Button>
               </div>
             </div>
@@ -177,7 +215,7 @@ export function OcrPreviewCard({
             {simplifyState.status === 'done' && simplifyState.simplified && (
               <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50/50 p-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-semibold text-neutral-700">Simplified Text</h4>
+                  <h4 className="text-xs font-semibold text-neutral-700">{t.simplifiedText}</h4>
                   <Button
                     variant="outline"
                     size="sm"
@@ -185,7 +223,7 @@ export function OcrPreviewCard({
                       handleCopy(simplifyState.simplified!.simplifiedText, 'simplified')
                     }
                   >
-                    {copiedField === 'simplified' ? 'Copied!' : 'Copy'}
+                    {copiedField === 'simplified' ? t.copied : t.copy}
                   </Button>
                 </div>
                 <p className="whitespace-pre-wrap text-neutral-700">
@@ -207,24 +245,24 @@ export function OcrPreviewCard({
             {summaryState.status === 'done' && summaryState.summary && (
               <div className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50/50 p-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-semibold text-neutral-700">Summary</h4>
+                  <h4 className="text-xs font-semibold text-neutral-700">{t.summary}</h4>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleCopy(summaryToPlainText(summaryState.summary!), 'summary')}
+                    onClick={() => handleCopy(summaryToPlainText(summaryState.summary!, t), 'summary')}
                   >
-                    {copiedField === 'summary' ? 'Copied!' : 'Copy'}
+                    {copiedField === 'summary' ? t.copied : t.copy}
                   </Button>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-semibold text-neutral-700">Main Purpose</h4>
+                  <h4 className="text-xs font-semibold text-neutral-700">{t.mainPurpose}</h4>
                   <p className="text-neutral-700">{summaryState.summary.mainPurpose}</p>
                 </div>
 
                 {summaryState.summary.importantDates.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-neutral-700">Important Dates</h4>
+                    <h4 className="text-xs font-semibold text-neutral-700">{t.importantDates}</h4>
                     <ul className="list-inside list-disc text-neutral-700">
                       {summaryState.summary.importantDates.map((date) => (
                         <li key={date}>{date}</li>
@@ -235,7 +273,7 @@ export function OcrPreviewCard({
 
                 {summaryState.summary.requiredActions.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-neutral-700">Required Actions</h4>
+                    <h4 className="text-xs font-semibold text-neutral-700">{t.requiredActions}</h4>
                     <ul className="list-inside list-disc text-neutral-700">
                       {summaryState.summary.requiredActions.map((action) => (
                         <li key={action}>{action}</li>
@@ -246,7 +284,7 @@ export function OcrPreviewCard({
 
                 {summaryState.summary.keyPoints.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-neutral-700">Key Points</h4>
+                    <h4 className="text-xs font-semibold text-neutral-700">{t.keyPoints}</h4>
                     <ul className="list-inside list-disc text-neutral-700">
                       {summaryState.summary.keyPoints.map((point) => (
                         <li key={point}>{point}</li>

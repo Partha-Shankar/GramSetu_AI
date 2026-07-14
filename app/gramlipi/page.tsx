@@ -5,7 +5,10 @@ import { PageHeader } from '@/components/common/page-header';
 import { DocumentUploadCard } from './components/document-upload-card';
 import { DocumentPreviewCard } from './components/document-preview-card';
 import { OcrPreviewCard } from './components/ocr-preview-card';
+import { ComplaintFormCard } from './components/complaint-form-card';
+import { ComplaintLetterCard } from './components/complaint-letter-card';
 import { useDocumentOcr } from './hooks/useDocumentOcr';
+import { useComplaintLetter } from './hooks/useComplaintLetter';
 
 export default function GramLipiPage() {
   const {
@@ -26,6 +29,17 @@ export default function GramLipiPage() {
     setLanguage,
     reset,
   } = useDocumentOcr();
+
+  const {
+    details,
+    updateField,
+    isDetailsComplete,
+    letterState,
+    runGenerateLetter,
+    resetComplaint,
+    language: complaintLanguage,
+    setLanguage: setComplaintLanguage,
+  } = useComplaintLetter();
 
   const isProcessing = state.stage === 'uploading' || state.stage === 'ocr';
   const showUploadCard = state.stage === 'idle' || state.stage === 'error';
@@ -64,6 +78,24 @@ export default function GramLipiPage() {
         onSimplify={runSimplify}
         language={language}
         onLanguageChange={setLanguage}
+      />
+
+      <ComplaintFormCard
+        details={details}
+        onFieldChange={updateField}
+        isDetailsComplete={isDetailsComplete}
+        onGenerate={runGenerateLetter}
+        onClear={resetComplaint}
+        isGenerating={letterState.status === 'loading'}
+        language={complaintLanguage}
+        onLanguageChange={setComplaintLanguage}
+      />
+
+      <ComplaintLetterCard
+        status={letterState.status}
+        letter={letterState.letter}
+        error={letterState.error}
+        onRetry={runGenerateLetter}
       />
     </div>
   );
