@@ -44,7 +44,8 @@ export default function SwachhAuditHistoryPage() {
     // Search filter
     if (searchQuery.trim() !== '') {
       result = result.filter((r) =>
-        r.villageName.toLowerCase().includes(searchQuery.toLowerCase())
+        r.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.id.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -102,7 +103,7 @@ export default function SwachhAuditHistoryPage() {
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-450" />
             <input
               type="text"
-              placeholder="Search by village name..."
+              placeholder="Search reports by notes or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-neutral-250 dark:border-neutral-800 bg-white dark:bg-neutral-950 rounded-md text-xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

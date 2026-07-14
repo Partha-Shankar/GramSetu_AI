@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import { Download, LayoutDashboard, Plus, ChevronLeft, MapPin, Calendar } from 'lucide-react';
+import { Download, FileText, LayoutDashboard, Plus, ChevronLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 function ResultContent() {
@@ -61,6 +61,197 @@ function ResultContent() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    if (!report) return;
+    try {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Please allow popups to download the PDF report.');
+        return;
+      }
+
+      const dateStrPrint = new Date(report.timestamp).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      const recommendationItems = report.recommendations.map(r => `<li>${r}</li>`).join('');
+      const detectionsCount = report.detections.length;
+      
+      const detectionsList = report.detections.map((det, index) => {
+        let binInfo = '';
+        if (det.category === 'dry') {
+          binInfo = ' - <strong style="color: #2563eb;">Discard in BLUE Dustbin (Dry Waste)</strong>';
+        } else if (det.category === 'wet') {
+          binInfo = ' - <strong style="color: #16a34a;">Discard in GREEN Dustbin (Wet Waste)</strong>';
+        } else if (det.category === 'hazardous') {
+          binInfo = ' - <strong style="color: #dc2626;">Discard in RED Dustbin (Hazardous/E-waste)</strong>';
+        } else if (det.category === 'sanitation') {
+          binInfo = ' - <strong style="color: #7c3aed;">Notify Gram Panchayat PDO</strong>';
+        }
+        return `
+          <div style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 13px;">
+            <strong>#${index + 1} ${det.label}</strong> (${Math.round(det.confidence * 100)}% Confidence)${binInfo}
+          </div>
+        `;
+      }).join('');
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>GramSetu AI - Sanitation Audit Report</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              color: #1f2937;
+              line-height: 1.5;
+              padding: 40px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header {
+              border-bottom: 3px solid #2563eb;
+              padding-bottom: 16px;
+              margin-bottom: 24px;
+            }
+            .logo {
+              font-size: 24px;
+              font-weight: 800;
+              color: #2563eb;
+            }
+            .title {
+              font-size: 20px;
+              font-weight: 700;
+              margin-top: 8px;
+            }
+            .meta {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #6b7280;
+              margin-top: 12px;
+            }
+            .score-section {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background-color: #f3f4f6;
+              padding: 16px;
+              border-radius: 8px;
+              margin-bottom: 24px;
+            }
+            .score-box {
+              text-align: center;
+            }
+            .score-num {
+              font-size: 32px;
+              font-weight: 800;
+              color: #1e3a8a;
+            }
+            .severity-badge {
+              display: inline-block;
+              padding: 4px 12px;
+              border-radius: 9999px;
+              font-size: 12px;
+              font-weight: 700;
+              text-transform: uppercase;
+              background-color: ${report.severity === 'critical' ? '#fee2e2' : report.severity === 'high' ? '#fef3c7' : '#d1fae5'};
+              color: ${report.severity === 'critical' ? '#991b1b' : report.severity === 'high' ? '#92400e' : '#065f46'};
+            }
+            h3 {
+              font-size: 15px;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              color: #4b5563;
+              margin-top: 24px;
+              margin-bottom: 12px;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 6px;
+            }
+            ul {
+              padding-left: 20px;
+              margin: 0;
+            }
+            li {
+              font-size: 13px;
+              margin-bottom: 8px;
+              font-weight: 500;
+            }
+            .footer {
+              margin-top: 48px;
+              border-top: 1px solid #e5e7eb;
+              padding-top: 16px;
+              text-align: center;
+              font-size: 11px;
+              color: #9ca3af;
+            }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">GramSetu AI</div>
+            <div class="title">Sanitation Scan Audit Report</div>
+            <div class="meta">
+              <span><strong>Report ID:</strong> ${report.id}</span>
+              <span><strong>Date & Time:</strong> ${dateStrPrint}</span>
+            </div>
+          </div>
+
+          <div class="score-section">
+            <div class="score-box">
+              <div class="score-num">${report.cleanlinessScore}%</div>
+              <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #4b5563;">Cleanliness Score</div>
+            </div>
+            <div>
+              <span class="severity-badge">${report.severity} Severity</span>
+            </div>
+          </div>
+
+          <h3>Audit Summary</h3>
+          <p style="font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 24px;">
+            ${report.notes || 'No description provided.'}
+          </p>
+
+          <h3>Detected Waste Details</h3>
+          <div style="margin-bottom: 24px;">
+            ${detectionsCount === 0 ? '<div style="font-size: 13px; color: #6b7280;">No waste objects detected. Site is clear.</div>' : detectionsList}
+          </div>
+
+          <h3>Required Cleaning Actions</h3>
+          <ul>
+            ${recommendationItems}
+          </ul>
+
+          <div class="footer">
+            Generated locally by GramSetu AI Sanitation Monitoring System.
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() {
+                window.close();
+              }, 500);
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    } catch (e) {
+      console.error('Failed to generate PDF:', e);
+    }
+  };
+
   if (loading) {
     return <LoadingState count={3} />;
   }
@@ -99,13 +290,8 @@ function ResultContent() {
           </Button>
         </Link>
 
-        {/* Date and Location Header */}
+        {/* Date Header (Location removed) */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-neutral-500">
-          <span className="flex items-center font-semibold text-neutral-800 dark:text-neutral-200">
-            <MapPin className="w-4 h-4 mr-1 text-blue-500" />
-            Village: {report.villageName}
-          </span>
-          <span className="text-neutral-300 dark:text-neutral-700">|</span>
           <span className="flex items-center">
             <Calendar className="w-4 h-4 mr-1" />
             {dateStr}
@@ -167,6 +353,16 @@ function ResultContent() {
             >
               <Download className="w-4 h-4 mr-2 text-neutral-500" />
               <span>Download JSON Payload</span>
+            </Button>
+
+            <Button
+              onClick={handleDownloadPDF}
+              variant="outline"
+              size="md"
+              className="text-xs bg-white text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+            >
+              <FileText className="w-4 h-4 mr-2 text-neutral-500" />
+              <span>Download PDF Report</span>
             </Button>
 
             <Link href="/swachh-audit/camera">

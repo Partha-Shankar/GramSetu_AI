@@ -4,7 +4,7 @@ import React from 'react';
 import { SwachhAuditReport } from '../types/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Trash2, ChevronRight } from 'lucide-react';
+import { Calendar, Trash2, ChevronRight } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 import Link from 'next/link';
 
@@ -31,7 +31,7 @@ export function DetectionHistoryCard({ report, onDelete }: DetectionHistoryCardP
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={report.imageSrc}
-            alt={`Audit at ${report.villageName}`}
+            alt="Sanitation audit image"
             className="w-full h-full object-cover"
           />
           {/* Circular Cleanliness Score overlay on thumbnail */}
@@ -45,10 +45,6 @@ export function DetectionHistoryCard({ report, onDelete }: DetectionHistoryCardP
           {/* Metadata */}
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center text-xs font-semibold text-neutral-800 dark:text-neutral-200 mr-2">
-                <MapPin className="w-3.5 h-3.5 mr-1 text-blue-500" />
-                {report.villageName}
-              </span>
               <SeverityBadge severity={report.severity} />
             </div>
 

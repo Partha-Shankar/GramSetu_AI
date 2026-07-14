@@ -184,39 +184,49 @@ export function generateRecommendations(detections: DetectionResult[]): string[]
   const recommendations: string[] = [];
   const labels = new Set(detections.map((d) => d.label.toLowerCase().trim()));
 
-  // 1. Plastic waste rule
-  if (Array.from(labels).some((l) => l.includes('plastic') || l.includes('wrapper') || l.includes('bottle'))) {
-    recommendations.push('Plastic waste detected. Recommend immediate dry-waste collection and segregation.');
+  // 1. Dry waste rule (plastic, paper, cardboard, metal, glass)
+  const hasDry = Array.from(labels).some(
+    (l) =>
+      l.includes('plastic') ||
+      l.includes('wrapper') ||
+      l.includes('bottle') ||
+      l.includes('paper') ||
+      l.includes('cardboard') ||
+      l.includes('box') ||
+      l.includes('metal') ||
+      l.includes('can') ||
+      l.includes('glass') ||
+      l.includes('shard')
+  );
+  if (hasDry) {
+    recommendations.push('Dry waste detected. Please discard it in the BLUE dustbin for recycling.');
   }
 
-  // 2. Paper/Cardboard rule
-  if (Array.from(labels).some((l) => l.includes('paper') || l.includes('cardboard') || l.includes('box'))) {
-    recommendations.push('Paper/Cardboard litter detected. Recommend collection for dry recycling.');
+  // 2. Wet waste rule (organic, food)
+  const hasWet = Array.from(labels).some((l) => l.includes('organic') || l.includes('food') || l.includes('decay'));
+  if (hasWet) {
+    recommendations.push('Wet waste detected. Please discard it in the GREEN dustbin for composting.');
   }
 
-  // 3. Metal/Glass rule
-  if (Array.from(labels).some((l) => l.includes('metal') || l.includes('can') || l.includes('glass') || l.includes('shard'))) {
-    recommendations.push('Sharp Metal/Glass elements present. Recommend priority collection to prevent injury hazards.');
+  // 3. Electronic / Hazardous waste rule (battery, electronic)
+  const hasHazardous = Array.from(labels).some(
+    (l) => l.includes('electronic') || l.includes('e-waste') || l.includes('battery')
+  );
+  if (hasHazardous) {
+    recommendations.push('Hazardous/Electronic waste detected. Please discard it in the RED dustbin for safe specialized disposal.');
   }
 
-  // 4. Organic/Food waste rule
-  if (Array.from(labels).some((l) => l.includes('organic') || l.includes('food') || l.includes('decay'))) {
-    recommendations.push('Organic/Food waste accumulation detected. Recommend composting or scheduled disposal before decay.');
-  }
-
-  // 5. Electronic waste rule
-  if (Array.from(labels).some((l) => l.includes('electronic') || l.includes('e-waste') || l.includes('battery'))) {
-    recommendations.push('Electronic waste (hazardous) detected. Recommend specialized e-waste collection and safe containment.');
-  }
-
-  // 6. Sewage/Drain/Stagnant Water rule
-  if (Array.from(labels).some((l) => l.includes('sewage') || l.includes('drain') || l.includes('stagnant') || l.includes('water'))) {
-    recommendations.push('Sewage/Stagnant water detected. Recommend immediate desilting/clearing to prevent mosquito vector breeding.');
+  // 4. Sewage / Stagnant Water / Drainage blockage rule
+  const hasSanitation = Array.from(labels).some(
+    (l) => l.includes('sewage') || l.includes('drain') || l.includes('stagnant') || l.includes('water')
+  );
+  if (hasSanitation) {
+    recommendations.push('Stagnant water or drainage blockage detected. Clear blockages immediately, or report it to the Panchayat Development Officer (PDO) of your Gram Panchayat.');
   }
 
   // Fallback if there are objects but none triggered specific keywords
   if (recommendations.length === 0) {
-    recommendations.push('Solid waste detected. Schedule cleanup drive and empty local trash receptacles.');
+    recommendations.push('Waste detected. Segregate and dispose of dry waste in the BLUE dustbin and wet waste in the GREEN dustbin.');
   }
 
   return recommendations;
