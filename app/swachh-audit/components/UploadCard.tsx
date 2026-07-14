@@ -1,98 +1,42 @@
 'use client';
 
-import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { useImageUpload } from '../hooks/useImageUpload';
 
 interface UploadCardProps {
   onContinue: (imageSrc: string) => void;
 }
 
 export function UploadCard({ onContinue }: UploadCardProps) {
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [dragActive, setDragActive] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    imageSrc,
+    dragActive,
+    error,
+    handleDrag,
+    handleDrop,
+    handleFileChange,
+    handlePaste,
+    removeImage,
+  } = useImageUpload();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Resize and compress image using Canvas to avoid localStorage storage limits
-  const processAndResizeImage = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setError('Selected file is not an image. Please upload a JPEG or PNG.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 600;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          // Convert to jpeg with 0.8 quality
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          setImageSrc(compressedDataUrl);
-          setError(null);
-        }
-      };
-      img.src = e.target?.result as string;
+  // Attach global paste listener so Ctrl+V anywhere on the upload component/page works
+  useEffect(() => {
+    const windowPasteHandler = (e: ClipboardEvent) => {
+      handlePaste(e);
     };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDrag = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processAndResizeImage(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      processAndResizeImage(e.target.files[0]);
-    }
-  };
+    window.addEventListener('paste', windowPasteHandler);
+    return () => {
+      window.removeEventListener('paste', windowPasteHandler);
+    };
+  }, [handlePaste]);
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
-  };
-
-  const removeImage = () => {
-    setImageSrc(null);
-    setError(null);
   };
 
   const handleContinue = () => {
@@ -109,13 +53,13 @@ export function UploadCard({ onContinue }: UploadCardProps) {
           <span>Upload Image</span>
         </CardTitle>
         <CardDescription className="text-xs">
-          Select or drop a photo of a waste pile, stagnant water, or sewer
+          Select, drop, or paste (Ctrl+V) a photo of a waste pile, stagnant water, or sewer
         </CardDescription>
       </CardHeader>
 
       <CardContent className="p-6">
         {error && (
-          <div className="mb-4 flex items-start space-x-2 text-xs bg-red-50 text-red-700 p-3 rounded-md border border-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/35">
+          <div className="mb-4 flex items-start space-x-2 text-xs bg-red-50 text-red-700 p-3 rounded-md border border-red-100 dark:bg-red-950/20 dark:text-red-405 dark:border-red-900/35">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             <span>{error}</span>
           </div>
@@ -147,10 +91,10 @@ export function UploadCard({ onContinue }: UploadCardProps) {
             </div>
 
             <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
-              Drag & drop file here or <span className="text-blue-600 dark:text-blue-400 underline underline-offset-2">browse files</span>
+              Drag & drop file here, paste image, or <span className="text-blue-600 dark:text-blue-400 underline underline-offset-2">browse files</span>
             </p>
             <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
-              Supports JPEG, PNG up to 10MB
+              Supports JPEG, PNG, WEBP up to 10MB
             </p>
           </div>
         ) : (
