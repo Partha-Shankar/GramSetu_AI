@@ -51,18 +51,20 @@ class DetectorService {
 
     if (useMock) {
       // Step 2: Preprocessing (Mock)
-      onProgress(45, 'Pre-processing capture frame (scaling to 640x640 tensor)...');
-      await delay(400);
+      onProgress(40, 'Pre-processing capture frame (scaling to 640x640 tensor)...');
+      await delay(350);
 
-      // Step 3: Run Model (Mock)
-      onProgress(70, 'Running forward-pass on mock inference adapter...');
-      await delay(600);
+      // Step 3: Run Model (Mock / Color analyzer)
+      onProgress(60, 'Analyzing image pixel values for waste categories...');
+      const dominantType = await this.analyzeImageColors(imageSrc);
+      onProgress(75, `Smart color analysis determined dominant type: ${dominantType.toUpperCase()}`);
+      await delay(450);
 
       // Step 4: Post Process (Mock)
       onProgress(85, 'Extracting bounding box coordinates & category tags...');
-      await delay(400);
+      await delay(350);
 
-      detections = this.generateMockDetections();
+      detections = this.generateMockDetections(dominantType);
     } else {
       try {
         // Step 2: Preprocessing
@@ -92,7 +94,8 @@ class DetectorService {
         console.error('Inference execution failed, falling back to mock adapter:', inferenceErr);
         onProgress(80, 'Inference failed. Recovering with mock inference adapter...');
         await delay(500);
-        detections = this.generateMockDetections();
+        const dominantType = await this.analyzeImageColors(imageSrc);
+        detections = this.generateMockDetections(dominantType);
       }
     }
 
@@ -125,41 +128,31 @@ class DetectorService {
   }
 
   /**
-   * Generates realistic mock detections to run the application if ONNX file is not present.
+   * Generates realistic mock detections based on image color analysis.
    */
-  private generateMockDetections(): DetectionResult[] {
+  private generateMockDetections(dominantType: 'wet' | 'dry' | 'sanitation'): DetectionResult[] {
     const timestamp = Date.now();
-    const scenarios = [
-      // Scenario A: Garbage dump
-      [
-        { id: `det-mock-${timestamp}-1`, label: 'Plastic Bottle', confidence: 0.94, category: 'dry' as const, bbox: { x: 15.2, y: 35.1, width: 12.5, height: 28.3 } },
-        { id: `det-mock-${timestamp}-2`, label: 'Plastic Wrapper', confidence: 0.88, category: 'dry' as const, bbox: { x: 42.1, y: 55.4, width: 22.0, height: 18.1 } },
-        { id: `det-mock-${timestamp}-3`, label: 'Organic Waste', confidence: 0.83, category: 'wet' as const, bbox: { x: 28.5, y: 48.0, width: 35.4, height: 25.6 } },
-        { id: `det-mock-${timestamp}-4`, label: 'Food Waste', confidence: 0.76, category: 'wet' as const, bbox: { x: 60.1, y: 38.2, width: 18.4, height: 16.7 } },
-        { id: `det-mock-${timestamp}-5`, label: 'Metal Can', confidence: 0.81, category: 'dry' as const, bbox: { x: 5.5, y: 68.3, width: 15.0, height: 14.5 } },
-        { id: `det-mock-${timestamp}-6`, label: 'Electronic Waste', confidence: 0.85, category: 'hazardous' as const, bbox: { x: 75.3, y: 52.0, width: 14.2, height: 20.8 } }
-      ],
-      // Scenario B: Open Sewer / sanitation issue
-      [
+    
+    if (dominantType === 'wet') {
+      return [
+        { id: `det-mock-${timestamp}-1`, label: 'Food Waste', confidence: 0.92, category: 'wet' as const, bbox: { x: 15.0, y: 25.0, width: 35.0, height: 40.0 } },
+        { id: `det-mock-${timestamp}-2`, label: 'Organic Waste', confidence: 0.88, category: 'wet' as const, bbox: { x: 45.0, y: 30.0, width: 40.0, height: 45.0 } },
+      ];
+    }
+    
+    if (dominantType === 'sanitation') {
+      return [
         { id: `det-mock-${timestamp}-1`, label: 'Sewage', confidence: 0.93, category: 'sanitation' as const, bbox: { x: 8.0, y: 30.5, width: 84.0, height: 35.0 } },
         { id: `det-mock-${timestamp}-2`, label: 'Stagnant Water', confidence: 0.90, category: 'sanitation' as const, bbox: { x: 20.0, y: 45.0, width: 62.0, height: 25.0 } },
-        { id: `det-mock-${timestamp}-3`, label: 'Plastic Bottle', confidence: 0.72, category: 'dry' as const, bbox: { x: 4.5, y: 72.0, width: 10.0, height: 12.0 } },
-        { id: `det-mock-${timestamp}-4`, label: 'Cardboard', confidence: 0.68, category: 'dry' as const, bbox: { x: 78.0, y: 68.0, width: 16.0, height: 15.0 } }
-      ],
-      // Scenario C: Minor littering
-      [
-        { id: `det-mock-${timestamp}-1`, label: 'Cardboard Box', confidence: 0.91, category: 'dry' as const, bbox: { x: 25.0, y: 40.0, width: 38.0, height: 35.0 } },
-        { id: `det-mock-${timestamp}-2`, label: 'Paper', confidence: 0.84, category: 'dry' as const, bbox: { x: 12.0, y: 68.0, width: 18.0, height: 14.0 } },
-        { id: `det-mock-${timestamp}-3`, label: 'Plastic Wrapper', confidence: 0.79, category: 'dry' as const, bbox: { x: 70.0, y: 60.0, width: 15.0, height: 12.0 } }
-      ],
-      // Scenario D: Clean street
-      [
-        { id: `det-mock-${timestamp}-1`, label: 'Paper', confidence: 0.65, category: 'dry' as const, bbox: { x: 48.0, y: 78.0, width: 8.0, height: 6.0 } }
-      ]
-    ];
+      ];
+    }
 
-    const idx = Math.floor(Math.random() * scenarios.length);
-    return scenarios[idx];
+    // Default 'dry'
+    return [
+      { id: `det-mock-${timestamp}-1`, label: 'Plastic Bottle', confidence: 0.94, category: 'dry' as const, bbox: { x: 15.2, y: 35.1, width: 22.5, height: 38.3 } },
+      { id: `det-mock-${timestamp}-2`, label: 'Plastic Wrapper', confidence: 0.88, category: 'dry' as const, bbox: { x: 42.1, y: 55.4, width: 32.0, height: 28.1 } },
+      { id: `det-mock-${timestamp}-3`, label: 'Cardboard Box', confidence: 0.81, category: 'dry' as const, bbox: { x: 5.5, y: 68.3, width: 25.0, height: 20.5 } },
+    ];
   }
 
   /**
@@ -200,6 +193,78 @@ class DetectorService {
     }
 
     return summary;
+  }
+
+  /**
+   * Simple client-side sampler that guesses dominant colors in the uploaded base64 image 
+   * to dynamically select a matching mock scenario (Wet vs Dry vs Sanitation).
+   */
+  private async analyzeImageColors(imageSrc: string): Promise<'wet' | 'dry' | 'sanitation'> {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') {
+        resolve('dry');
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 50;
+          canvas.height = 50;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve('dry');
+            return;
+          }
+          ctx.drawImage(img, 0, 0, 50, 50);
+          const imgData = ctx.getImageData(0, 0, 50, 50).data;
+          
+          let greenYellowCount = 0;
+          let darkCount = 0;
+          let blueLightCount = 0;
+
+          for (let i = 0; i < imgData.length; i += 4) {
+            const r = imgData[i];
+            const g = imgData[i + 1];
+            const b = imgData[i + 2];
+            const a = imgData[i + 3];
+            if (a < 50) continue;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const l = (max + min) / 2;
+
+            // Brightness check for dark/muddy pools (sewage/sanitation)
+            if (l < 65) {
+              darkCount++;
+              continue;
+            }
+
+            // Hue indicators
+            // Oranges, warm yellows, ripe fruits, greens
+            if (r > 115 && g > 90 && b < 105) {
+              greenYellowCount++;
+            } else if (g > 100 && r < 140 && b < 100) {
+              greenYellowCount++;
+            } else if (b > 120 || (r > 200 && g > 200 && b > 200)) {
+              blueLightCount++;
+            }
+          }
+
+          if (greenYellowCount > blueLightCount && greenYellowCount > darkCount) {
+            resolve('wet');
+          } else if (darkCount > greenYellowCount && darkCount > blueLightCount) {
+            resolve('sanitation');
+          } else {
+            resolve('dry');
+          }
+        } catch (e) {
+          resolve('dry');
+        }
+      };
+      img.onerror = () => resolve('dry');
+      img.src = imageSrc;
+    });
   }
 }
 
