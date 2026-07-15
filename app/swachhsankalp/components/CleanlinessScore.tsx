@@ -16,23 +16,23 @@ export function CleanlinessScore({ score }: CleanlinessScoreProps) {
 
   // Status mapping
   let statusText = 'Needs Work';
-  let statusColor = 'text-rose-600 bg-rose-50 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900';
+  let statusColor = 'text-rose-700 bg-rose-50 border-rose-200/60 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/50';
   let statusIcon = AlertCircle;
   let summary = 'Immediate intervention needed to clean community common areas.';
 
   if (score >= 90) {
     statusText = 'Excellent';
-    statusColor = 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900';
+    statusColor = 'text-emerald-700 bg-emerald-50 border-emerald-200/60 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50';
     statusIcon = ShieldCheck;
     summary = 'Outstanding local efforts! Maintain this standard across all wards.';
   } else if (score >= 75) {
     statusText = 'Good';
-    statusColor = 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900';
+    statusColor = 'text-blue-700 bg-blue-50 border-blue-200/60 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50';
     statusIcon = ShieldCheck;
     summary = 'Great community participation. Toggling pending checklists will push the index higher.';
   } else if (score >= 50) {
     statusText = 'Fair';
-    statusColor = 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900';
+    statusColor = 'text-amber-700 bg-amber-50 border-amber-200/60 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50';
     statusIcon = TrendingUp;
     summary = 'Moderate conditions. Campaigns and active volunteering are required.';
   }
