@@ -18,7 +18,7 @@ import { CapturedImage, ScanStage } from './types/jaldrishti.types';
 export default function JalDrishtiPage() {
   const [stage, setStage] = useState<ScanStage>('camera');
   const [capturedImage, setCapturedImage] = useState<CapturedImage | null>(null);
-  const { results, isAnalyzing, error, runAnalysis, reset } = useStripAnalysis();
+  const { results, error, runAnalysis, reset } = useStripAnalysis();
 
   const handleCapture = (image: CapturedImage) => {
     setCapturedImage(image);

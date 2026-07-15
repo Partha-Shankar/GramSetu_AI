@@ -17,7 +17,6 @@ export default function SwachhSankalpPage() {
     tasks,
     campaigns,
     wards,
-    achievements,
     villageScore,
     stats,
     toggleTask,

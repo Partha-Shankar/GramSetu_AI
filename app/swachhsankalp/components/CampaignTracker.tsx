@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar, CheckCircle2, ChevronRight, HelpCircle } from 'lucide-react';
+import { Users, Calendar, CheckCircle2 } from 'lucide-react';
 import { Campaign } from '../types';
 
 interface CampaignTrackerProps {
