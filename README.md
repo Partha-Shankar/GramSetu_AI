@@ -121,15 +121,11 @@ GramSetu AI relies on **zero** cloud services for machine learning, image proces
 3. **ONNX Model Setup**:
    Because large model files are excluded from Git, the repository does not contain the pre-trained YOLOv8 ONNX weights in `public/models/`.
    * **Mock Inference Fallback**: If the model weights are not present, the application automatically runs using a **Mock Inference Adapter**. Bounding boxes and scores will still render for testing, but without running active neural network inference.
-   * **Real Inference Setup**: To perform real object detection inference, generate the `yolov8n.onnx` file using the Ultralytics CLI:
-     ```bash
-     pip install ultralytics
-     yolo export model=yolov8n.pt format=onnx
-     ```
-     This will output a `yolov8n.onnx` file in your current folder. Copy it directly to:
+   * **Real Inference Setup**: If you have downloaded the `yolov8n.onnx` model (e.g. from Hugging Face or another source), place the model file directly in the `public/models/` folder:
      ```
      public/models/yolov8n.onnx
      ```
+     Verify that the file is named `yolov8n.onnx` exactly, matching the configuration in `app/swachh-audit/services/detection/modelLoader.ts`.
 
 ### Running Locally
 1. Start the Next.js development server:
@@ -161,6 +157,22 @@ Generate the production compile bundle:
 ```bash
 npm run build
 ```
+
+---
+
+## Screenshots
+
+### Overall Dashboard
+![Overall Dashboard](public/screenshots/Screenshot%202026-07-15%20170354.png)
+
+### Swachh Sankalp Dashboard
+![Swachh Sankalp Dashboard](public/screenshots/Screenshot%202026-07-15%20170439.png)
+
+### GramLipi (Regional Document Simplifier)
+![GramLipi](public/screenshots/signal-2026-07-15-17-08-59-662_003.jpg)
+
+> [!NOTE]
+> Additional screenshots of the camera capture flows, JalDrishti color analysis scans, and audit reports can be viewed inside the [public/screenshots/](file:///d:/GramSetu%20AI/public/screenshots) folder.
 
 ---
 
