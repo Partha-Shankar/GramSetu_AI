@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckSquare, Square, Plus, Trash2, Tag, CalendarRange } from 'lucide-react';
+import { CheckSquare, Square, Plus } from 'lucide-react';
 import { ChecklistTask } from '../types';
 
 interface ChecklistManagerProps {
