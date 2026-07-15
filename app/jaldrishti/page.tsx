@@ -1,28 +1,48 @@
-import React from 'react';
+'use client';
+import { processStripImage } from './services/imageProcessor';
+import React, { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { CameraView } from './components/CameraView';
+import { ImagePreview } from './components/ImagePreview';
+import { CapturedImage, ScanStage } from './types/jaldrishti.types';
 
 export default function JalDrishtiPage() {
+  const [stage, setStage] = useState<ScanStage>('camera');
+  const [capturedImage, setCapturedImage] = useState<CapturedImage | null>(null);
+
+  const handleCapture = (image: CapturedImage) => {
+    setCapturedImage(image);
+    setStage('preview');
+  };
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setStage('camera');
+  };
+
+  const handleAnalyze = async () => {
+  if (!capturedImage) return;
+  setStage('analyzing');
+
+  // Temporary sanity check for Day 2 — Day 3 replaces this with real
+  // parameter matching + the results screen.
+  const pads = await processStripImage(capturedImage);
+  console.log('Extracted pad colors:', pads);
+};
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="JalDrishti"
-        description="Water resource monitoring and tracking."
-      />
+      <PageHeader title="JalDrishti" description="Scan a water testing strip for a quick safety check." />
 
-      <Card className="border-neutral-200">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">Water Analysis</CardTitle>
-          <CardDescription className="text-xs">
-            Analyze turbidity, pH levels, and tracking.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="h-64 flex items-center justify-center border border-dashed border-neutral-200 rounded-md bg-neutral-50/50">
-          <span className="text-sm text-neutral-400">
-            Feature coming soon.
-          </span>
-        </CardContent>
-      </Card>
+      {stage === 'camera' && <CameraView onCapture={handleCapture} />}
+      {stage === 'preview' && capturedImage && (
+        <ImagePreview image={capturedImage} onRetake={handleRetake} onAnalyze={handleAnalyze} />
+      )}
+      {stage === 'analyzing' && (
+        <div className="text-sm text-neutral-400 text-center py-12">
+          Analysis pipeline coming in Day 3.
+        </div>
+      )}
     </div>
   );
 }
