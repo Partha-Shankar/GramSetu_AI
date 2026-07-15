@@ -19,7 +19,7 @@ export function CleanlinessScoreCard({ score }: CleanlinessScoreCardProps) {
         color: 'text-emerald-500',
         stroke: 'stroke-emerald-500',
         bg: 'bg-emerald-500/10',
-        description: 'Vibrant, clean surroundings with minimal waste footprints.',
+        description: 'Outstanding sanitation levels. Surroundings are clean and well-maintained.',
         icon: Sparkles,
       };
     }
@@ -30,7 +30,7 @@ export function CleanlinessScoreCard({ score }: CleanlinessScoreCardProps) {
         color: 'text-blue-500',
         stroke: 'stroke-blue-500',
         bg: 'bg-blue-500/10',
-        description: 'Mostly sanitary conditions with minor scattered dry litter.',
+        description: 'Satisfactory sanitation levels. Minimal scattered litter detected.',
         icon: Award,
       };
     }
@@ -41,7 +41,7 @@ export function CleanlinessScoreCard({ score }: CleanlinessScoreCardProps) {
         color: 'text-amber-500',
         stroke: 'stroke-amber-500',
         bg: 'bg-amber-500/10',
-        description: 'Acceptable but requires scheduled housekeeping and clearing.',
+        description: 'Moderate sanitation levels. Regular housekeeping and clearing recommended.',
         icon: Award,
       };
     }
@@ -52,7 +52,7 @@ export function CleanlinessScoreCard({ score }: CleanlinessScoreCardProps) {
         color: 'text-orange-500',
         stroke: 'stroke-orange-500',
         bg: 'bg-orange-500/10',
-        description: 'Unsanitary environment. Solid and organic waste heap clusters.',
+        description: 'Low sanitation levels. Substantial waste clusters requiring scheduled clearing.',
         icon: ShieldAlert,
       };
     }
@@ -62,7 +62,7 @@ export function CleanlinessScoreCard({ score }: CleanlinessScoreCardProps) {
       color: 'text-red-500',
       stroke: 'stroke-red-500',
       bg: 'bg-red-500/10',
-      description: 'Severe health hazards. Water logging, sewage leakages, toxic dump.',
+      description: 'Critical sanitation levels. High volume waste accumulation requiring immediate cleaning.',
       icon: ShieldAlert,
     };
   };

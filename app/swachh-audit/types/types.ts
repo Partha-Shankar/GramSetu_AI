@@ -21,4 +21,5 @@ export interface SwachhAuditReport {
   villageName: string;
   objectCount: number;
   notes?: string;
+  recommendations: string[];
 }

@@ -6,7 +6,7 @@ import { SwachhAuditHeader } from '../components/SwachhAuditHeader';
 import { useDetection } from '../hooks/useDetection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Cpu, Terminal, MapPin, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Cpu, Terminal, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function DetectionPage() {
   const router = useRouter();
@@ -148,8 +148,7 @@ export default function DetectionPage() {
               <div className="w-full mb-4 space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <span className="text-neutral-500 dark:text-neutral-450 flex items-center">
-                    <MapPin className="w-3.5 h-3.5 mr-1 text-neutral-400" />
-                    Auditing Location: {villageName}
+                    Analyzing sanitation details...
                   </span>
                   <span className="text-blue-600 dark:text-blue-400">{progress}%</span>
                 </div>

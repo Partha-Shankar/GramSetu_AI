@@ -42,6 +42,13 @@ const CATEGORY_COLORS = {
   },
 };
 
+const CATEGORY_NAMES = {
+  dry: 'Dry Waste',
+  wet: 'Wet Waste',
+  hazardous: 'Hazardous/E-Waste',
+  sanitation: 'Sanitation Issue',
+};
+
 export function DetectionPreview({
   imageSrc,
   detections,
@@ -108,7 +115,7 @@ export function DetectionPreview({
                   isHighlighted ? 'opacity-100 z-30 scale-105' : ''
                 )}
               >
-                #{index + 1} {det.label} ({Math.round(det.confidence * 100)}%)
+                #{index + 1} {det.label} ({CATEGORY_NAMES[det.category] || det.category}) ({Math.round(det.confidence * 100)}%)
               </div>
             </div>
           );

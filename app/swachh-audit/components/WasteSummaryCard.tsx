@@ -10,6 +10,7 @@ interface WasteSummaryCardProps {
   detections: DetectionResult[];
   highlightedId?: string | null;
   onHoverDetection?: (id: string | null) => void;
+  recommendations?: string[];
 }
 
 const CATEGORY_STYLES = {
@@ -35,6 +36,7 @@ export function WasteSummaryCard({
   detections,
   highlightedId,
   onHoverDetection,
+  recommendations,
 }: WasteSummaryCardProps) {
   // Compute tallies
   const counts = detections.reduce(
@@ -120,11 +122,20 @@ export function WasteSummaryCard({
         </div>
 
         {/* Detailed Recommendations */}
-        <div className={cn('p-3 rounded-lg flex items-start space-x-2.5', recommendation.bgColor)}>
-          <div className="shrink-0 mt-0.5">{recommendation.icon}</div>
-          <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">
-            {recommendation.text}
-          </p>
+        <div className={cn('p-3 rounded-lg flex flex-col space-y-2', recommendation.bgColor)}>
+          <div className="flex items-center space-x-2">
+            <div className="shrink-0">{recommendation.icon}</div>
+            <span className="text-xs font-bold text-neutral-850 dark:text-neutral-200">
+              Cleanliness Recommendations
+            </span>
+          </div>
+          <ul className="list-disc pl-5 text-[11px] text-neutral-750 dark:text-neutral-300 space-y-1 font-medium">
+            {(recommendations && recommendations.length > 0 ? recommendations : [recommendation.text]).map((rec, i) => (
+              <li key={i} className="leading-relaxed">
+                {rec}
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Object list */}
