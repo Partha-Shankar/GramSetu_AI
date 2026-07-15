@@ -14,12 +14,15 @@ export function useSwachhData() {
 
   // 1. Initial Load from LocalStorage (Client Side)
   useEffect(() => {
-    setTasks(storage.getChecklist());
-    setCampaigns(storage.getCampaigns());
-    setWards(storage.getWards());
-    setAchievements(storage.getAchievements());
-    setWasteReportsCount(storage.getWasteReportsCount());
-    setIsLoaded(true);
+    const timer = setTimeout(() => {
+      setTasks(storage.getChecklist());
+      setCampaigns(storage.getCampaigns());
+      setWards(storage.getWards());
+      setAchievements(storage.getAchievements());
+      setWasteReportsCount(storage.getWasteReportsCount());
+      setIsLoaded(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // 2. Derive Village Cleanliness Score from tasks
