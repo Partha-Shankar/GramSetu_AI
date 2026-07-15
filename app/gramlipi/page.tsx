@@ -20,6 +20,10 @@ export default function GramLipiPage() {
     updateEditedText,
     summaryState,
     runSummarize,
+    simplifyState,
+    runSimplify,
+    language,
+    setLanguage,
     reset,
   } = useDocumentOcr();
 
@@ -56,6 +60,10 @@ export default function GramLipiPage() {
         onRetry={reset}
         summaryState={summaryState}
         onSummarize={runSummarize}
+        simplifyState={simplifyState}
+        onSimplify={runSimplify}
+        language={language}
+        onLanguageChange={setLanguage}
       />
     </div>
   );
