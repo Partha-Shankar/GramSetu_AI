@@ -25,3 +25,9 @@ export interface ParameterResult {
   level: string;
   status: 'safe' | 'warning' | 'unsafe';
 }
+export interface SavedReport {
+  id: string;
+  timestamp: number;
+  results: ParameterResult[];
+  overallStatus: 'safe' | 'warning' | 'unsafe';
+}
