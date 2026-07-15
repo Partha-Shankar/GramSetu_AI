@@ -1,107 +1,73 @@
-# SwachhAudit Module
+# SwachhAudit — On-Device AI Sanitation Auditor
 
-The **SwachhAudit** module provides offline-first sanitation monitoring, waste classification, cleanliness scoring, and severity analysis using on-device browser-based AI computer vision.
-
----
-
-## Folder Structure
-
-All module-specific code is isolated inside `app/swachh-audit/` to satisfy the strict architectural boundary requirements:
-
-*   **`camera/`** – Contains the live webcam/mobile camera scan page.
-*   **`upload/`** – Contains the photo drag-and-drop/paste file upload page.
-*   **`detection/`** – Contains the real-time AI processing screen with console logs and progress indicators.
-*   **`result/`** – Contains the audit diagnostic report page with bounding box overlays and JSON exports.
-*   **`history/`** – Contains the list of completed audits stored in local history.
-*   **`components/`** – Module-specific React UI components (e.g. `CameraCard`, `UploadCard`, `DetectionPreview`).
-*   **`context/`** – Contains `AuditContext.tsx` which manages the shared transient state (captured image, model progress, logs, errors).
-*   **`hooks/`** – Reusable custom React hooks:
-    *   `useCamera.ts` – Stream initialization, permission handling, canvas frame captures, and front/back toggles.
-    *   `useImageUpload.ts` – File drag-and-drop, copy-paste handlers, format validations, and canvas-based compression.
-    *   `useDetection.ts` – High-level execution coordinator.
-*   **`services/`** – Storage and AI pipeline services:
-    *   `auditService.ts` – Persistent LocalStorage history management.
-    *   `detection/` – ONNX inference pipeline (preprocessor, session loader, NMS postprocessor, and detector service).
-*   **`utils/`** – Utility functions:
-    *   `cleanliness.ts` – Cleanliness score calculations, category mappings, severity analysis, and recommendation engines.
+SwachhAudit is a mobile-first, edge-computing sanitation audit and waste segregation assistant designed specifically for Gram Panchayats and rural villagers. It runs fully local YOLOv8 computer vision object detection directly inside the browser using ONNX Runtime Web.
 
 ---
 
-## Detection Pipeline
+## 🚀 Key Features
 
-The pipeline processes input images through five distinct steps:
-
-```
-[Input Image (Base64/File)]
-          ↓
-[Canvas Resizing to 640x640 & Normalization]  (imagePreprocessor.ts)
-          ↓
-[ONNX Runtime Web Inference Session]         (modelLoader.ts)
-          ↓
-[Non-Maximum Suppression (NMS) & Decoding]    (postProcessor.ts)
-          ↓
-[Cleanliness & Severity Diagnostics Payload]   (cleanliness.ts)
-```
-
-1.  **Preprocessing**: The image is drawn onto an offscreen canvas, resized to `640x640` pixels, and converted into a planar Float32Array RGB tensor scaled to `[0.0, 1.0]`.
-2.  **Model Inference**: The tensor is processed by `onnxruntime-web` using WebGL (with WebAssembly CPU fallback).
-3.  **Post-processing**: Bounding box outputs are filtered by a confidence threshold ($\ge 0.25$), overlapped boxes are suppressed using NMS (IoU threshold $\ge 0.45$), and coordinates are scaled back to percentage ratios ($0-100\%$) for flexible rendering.
-4.  **Scoring & Severity**: Utilities analyze the results to determine:
-    *   *Cleanliness Score*: Calculated out of 100 based on counts, coverage, and hazard weights.
-    *   *Severity*: Ranked as Low, Medium, High, or Critical.
-    *   *Recommendations*: Deterministic, rule-based instructions corresponding to the detected waste categories.
+*   **🧠 Local Edge AI (YOLOv8)**: Run high-accuracy garbage detection and classification offline in the browser. Zero cloud costs, absolute data privacy, and robust performance in low-connectivity rural zones.
+*   **🎨 Smart Pixel-Color Analyzer (Fallback)**: When ONNX weights are not cached, a client-side canvas color-histogram sampler checks image tones (e.g. greens/yellows for wet waste, dark mud for sewage) to provide accurate mock segregation boxes.
+*   **🟢/🟡/🔴 Dynamic Traffic Light Banner**: A highly highlighted status header showcasing real-time village cleanliness grades, dynamically compiling descriptions based on *only* the detected waste classes (e.g., won't show battery warnings if only food waste is scanned).
+*   **🗣️ Voice Assist Playback ( English & ಕನ್ನಡ )**: Utilizes browser speech synthesis to read cleanliness ratings and segregation advice aloud, offering accessibility for low-literacy users. Includes a bouncing visual equalizer animation during speech.
+*   **🔀 Bilingual Language Toggle**: Switch the entire interface between English and Kannada with a single tap.
+*   **🗑️ Visual Segregation Dustbins**: Displays large, color-coded GREEN (Wet), BLUE (Dry), and RED (Hazardous) dustbin cards with specific local segregation instructions.
+*   **🌱 Interactive Bio-Compost Calculator**: A standalone slider widget allowing farmers to estimate organic fertilizer yield from wet waste and read composting steps in English/Kannada.
+*   **💬 One-Click GP PDO WhatsApp Report**: Prefills a WhatsApp template to instantly report drainage blockages and stagnant water to the local Panchayat Development Officer.
+*   **📞 Swachh Bharat Grievance Dialer**: Dial the national sanitation hotline (`1916`) directly from the result screen.
+*   **📄 Print-Optimized PDF Export**: Prints a clean, simplified summary report formatted for physical record-keeping.
 
 ---
 
-## LocalStorage Schema
+## 📁 Directory Structure
 
-History reports are saved locally under the key `gramsetu_swachh_audit_history` in the following format:
-
-```typescript
-export interface DetectionResult {
-  id: string;
-  label: string;
-  confidence: number;
-  category: 'dry' | 'wet' | 'hazardous' | 'sanitation';
-  bbox: {
-    x: number;      // % from left (0-100)
-    y: number;      // % from top (0-100)
-    width: number;  // % width (0-100)
-    height: number; // % height (0-100)
-  };
-}
-
-export interface SwachhAuditReport {
-  id: string;
-  timestamp: string;
-  imageSrc: string; // base64 representation
-  detections: DetectionResult[];
-  cleanlinessScore: number; // 0-100
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  villageName: string;
-  objectCount: number;
-  notes?: string;
-  recommendations: string[];
-}
+```text
+app/swachh-audit/
+├── camera/            # Live camera capture page
+├── components/        # Custom react components
+│   ├── CleanlinessScoreCard.tsx
+│   ├── DetectionPreview.tsx
+│   ├── WasteSummaryCard.tsx
+│   ├── SwachhAuditHeader.tsx
+│   └── ...
+├── detection/         # Local scanner & ORT loading screen
+├── history/           # Saved report history logs (ID/Notes search)
+├── hooks/             # Custom detection pipeline hooks
+├── result/            # Redesigned villager results dashboard
+├── services/          # AI pipeline services
+│   ├── detection/
+│   │   ├── detector.ts          # Core orchestrator
+│   │   ├── modelLoader.ts       # ORT WebGL compiler
+│   │   ├── imagePreprocessor.ts # 640x640 tensor scaler
+│   │   └── postProcessor.ts     # NMS box filters
+│   └── auditService.ts          # LocalStorage syncing service
+├── upload/            # File upload page
+├── utils/             # Heuristics & calculations
+│   └── cleanliness.ts           # Severity, metrics, & recommendations
+└── README.md          # This file
 ```
 
 ---
 
-## How to Replace the Mock Detector with a Real Model
+## 🛠️ Setup & Model Customization
 
-The module is designed with an adapter architecture. Swapping the mock inference system for a real YOLO ONNX model requires changing only two areas:
+### 1. Place Model Weights
+Rename your compiled ONNX model weights to `yolov8n.onnx` and place it in the public assets directory:
+📁 `public/models/yolov8n.onnx`
 
-1.  **Place the weights file**:
-    Save your compiled YOLOv8 model in the public folder:
-    `/public/models/yolov8n.onnx`
-2.  **Enable the forward-pass**:
-    The [detector.ts](file:///d:/GramSetu%20AI/app/swachh-audit/services/detection/detector.ts) service is configured to automatically attempt model loading. If it finds the file, it runs the WebGL forward-pass instead of mock detections. To make it strictly enforce the model (without mock fallbacks), modify `runDetection` in `detector.ts`:
-    ```typescript
-    // Change this block in detector.ts to remove the fallback if you want to enforce strict AI failure
-    try {
-      session = await modelLoader.loadModel();
-    } catch (err) {
-      // Throw error directly instead of setting useMock = true
-      throw new Error("Local AI model failed to load: " + err.message);
-    }
-    ```
+### 2. PyTorch to ONNX Export Instructions
+To fine-tune a model on your custom village garbage dataset (e.g. TACO/TrashNet) and export it:
+1. Install the Ultralytics toolkit:
+   ```bash
+   pip install ultralytics
+   ```
+2. Export your fine-tuned `best.pt` model weights to ONNX format:
+   ```bash
+   yolo export model=best.pt format=onnx imgsz=640
+   ```
+3. Copy the exported `best.onnx` to `public/models/yolov8n.onnx`.
+
+### 3. Update Class Mappings
+If your custom model has a different number of classes or ordering:
+1. Open [detector.ts](file:///d:/GramSetu%20AI/app/swachh-audit/services/detection/detector.ts) and update the `CLASS_LABELS` array in the exact order of the training classes configuration.
+2. Open [cleanliness.ts](file:///d:/GramSetu%20AI/app/swachh-audit/utils/cleanliness.ts) and modify `getCategoryFromLabel` and `generateRecommendations` keyword rules to map your labels to their respective categories (`dry`, `wet`, `hazardous`, `sanitation`).
