@@ -58,6 +58,7 @@ export interface ComplaintLetter {
 export type ProcessingStage =
   | "idle"
   | "uploading"
+  | "preview"
   | "ocr"
   | "simplifying"
   | "summarizing"
