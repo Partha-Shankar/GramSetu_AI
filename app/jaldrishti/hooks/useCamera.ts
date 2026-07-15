@@ -4,7 +4,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { CapturedImage } from '../types/jaldrishti.types';
 
 interface UseCameraReturn {
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   isStreaming: boolean;
   error: string | null;
   startCamera: () => Promise<void>;
