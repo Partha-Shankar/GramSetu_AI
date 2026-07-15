@@ -121,7 +121,12 @@ GramSetu AI relies on **zero** cloud services for machine learning, image proces
 3. **ONNX Model Setup**:
    Because large model files are excluded from Git, the repository does not contain the pre-trained YOLOv8 ONNX weights in `public/models/`.
    * **Mock Inference Fallback**: If the model weights are not present, the application automatically runs using a **Mock Inference Adapter**. Bounding boxes and scores will still render for testing, but without running active neural network inference.
-   * **Real Inference Setup**: To perform real object detection inference, download the `yolov8n.onnx` file (e.g., from [Ultralytics YOLOv8 releases](https://github.com/ultralytics/assets/releases/download/v8.0.0/yolov8n.onnx)) and copy it directly to:
+   * **Real Inference Setup**: To perform real object detection inference, generate the `yolov8n.onnx` file using the Ultralytics CLI:
+     ```bash
+     pip install ultralytics
+     yolo export model=yolov8n.pt format=onnx
+     ```
+     This will output a `yolov8n.onnx` file in your current folder. Copy it directly to:
      ```
      public/models/yolov8n.onnx
      ```
