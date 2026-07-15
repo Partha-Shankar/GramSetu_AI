@@ -118,6 +118,13 @@ GramSetu AI relies on **zero** cloud services for machine learning, image proces
    ```bash
    npm install
    ```
+3. **ONNX Model Setup**:
+   Because large model files are excluded from Git, the repository does not contain the pre-trained YOLOv8 ONNX weights in `public/models/`.
+   * **Mock Inference Fallback**: If the model weights are not present, the application automatically runs using a **Mock Inference Adapter**. Bounding boxes and scores will still render for testing, but without running active neural network inference.
+   * **Real Inference Setup**: To perform real object detection inference, download the `yolov8n.onnx` file (e.g., from [Ultralytics YOLOv8 releases](https://github.com/ultralytics/assets/releases/download/v8.0.0/yolov8n.onnx)) and copy it directly to:
+     ```
+     public/models/yolov8n.onnx
+     ```
 
 ### Running Locally
 1. Start the Next.js development server:
