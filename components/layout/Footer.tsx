@@ -8,7 +8,7 @@ export function Footer() {
     <footer className="w-full border-t border-neutral-200 bg-white py-3 shrink-0 text-xs">
       <Container className="flex items-center justify-between gap-2 text-neutral-500">
         <div>
-          <span>&copy; {new Date().getFullYear()} GramSetu AI. OSDHack 2026.</span>
+          <span>&copy; {new Date().getFullYear()} GramSetu AI. All rights reserved.</span>
         </div>
       </Container>
     </footer>

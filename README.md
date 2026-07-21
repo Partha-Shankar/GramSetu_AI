@@ -1,13 +1,5 @@
 # GramSetu AI
 
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=DczYj06s86w" target="_blank">
-    <img src="https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white" alt="YouTube Video Walkthrough" />
-  </a>
-  <br />
-  <strong>🎬 Click to watch the video walkthrough</strong>
-</p>
-
 GramSetu AI is an offline-first, client-side application designed to support rural communities with tools for sanitation audits, water quality analysis, document translation, and local developmental planning. It performs all core computations—including computer vision inference and OCR text extraction—directly inside the user's browser, eliminating the need for constant cloud connectivity or server-side data processing.
 
 ---
@@ -181,6 +173,8 @@ npm run build
 
 > [!NOTE]
 > Additional screenshots of the camera capture flows, JalDrishti color analysis scans, and audit reports can be viewed inside the [public/screenshots/](file:///d:/GramSetu%20AI/public/screenshots) folder.
+>
+> A video walkthrough of the application is available here: [YouTube Video Walkthrough](https://www.youtube.com/watch?v=DczYj06s86w).
 
 ---
 
